@@ -88,7 +88,7 @@ shinyServer(function(input, output,session) {
     for(i in 1:(L1+L2+1)) {
       t.temp = t.c[i]
       t1 = 1:(t.temp-1)
-      t2 = t.est:T
+      t2 = t.temp:T
       Y1.temp = Y[t1]
       Y2.temp = Y[t.temp:T]
       rslt1 = gls(Y1.temp ~ t1, correlation = corAR1(form=~1))
@@ -275,7 +275,7 @@ shinyServer(function(input, output,session) {
   })
   
   ###Change in AR coefficients
-  ChangeAR <- eventReactive(input$showChangeWN, {
+  ChangeAR <- eventReactive(input$showChangeAR, {
     Y1.est=LogLikelihood()$Y1.est
     Y2.est=LogLikelihood()$Y2.est
     t1 = LogLikelihood()$t1
