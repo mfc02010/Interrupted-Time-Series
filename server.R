@@ -276,36 +276,48 @@ shinyServer(function(input, output,session) {
   
   ###Change in AR coefficients
   ChangeAR <- eventReactive(input$showChangeAR, {
+    Y=simulationData()$Y; T=simulationData()$T;
     Y1.est=LogLikelihood()$Y1.est
     Y2.est=LogLikelihood()$Y2.est
     t1 = LogLikelihood()$t1
     t2 = LogLikelihood()$t2
-    t.est = LogLikelihood()$t.est
-    Y=simulationData()$Y; T=simulationData()$T;  
-    t0 = simulationData()$t0; L=simulationData()$L;
+    rslt1=LogLikelihood()$rslt1
+    rslt2=LogLikelihood()$rslt2
     
-    ols1 = lm(Y1.est~t1)
-    ols2 = lm(Y2.est~t2)
-    ROne = ols1$residuals
-    RTwo = ols2$residuals
-    RRed = c(ols1$residuals, ols2$residuals)
+    t3 = c(t1, t2)
+    rslt3 = gls( c(Y1.est, Y2.est) ~ t3, correlation = corAR1(form=~1))
     
-    modAR1 = lm(ROne[-1] ~ 0 + ROne[-length(ROne)])
-    modAR2 = lm(RTwo[-1] ~ 0 + RTwo[-length(RTwo)])
-    modRed = lm(RRed[-1] ~ 0 + RRed[-length(RRed)])
+    beta1.est = rslt1$coef
+    beta2.est = rslt2$coef
+    beta3.est = rslt3$coef
+    x<-rslt1$modelStruct$corStruct
+    PHI1.est = coef(x,unconstrained=FALSE)
+    x<-rslt2$modelStruct$corStruct
+    PHI2.est = coef(x,unconstrained=FALSE)
+    x<-rslt3$modelStruct$corStruct
+    PHI3.est = coef(x,unconstrained=FALSE)
     
-    RSSF = sum((modAR1$residuals)^2) + sum((modAR2$residuals)^2) 
-    RSSR = sum((modRed$residuals)^2)
+    
+    ROne = Y1.est - ( cbind(rep(1, length(t1)), t1) %*% beta1.est )
+    RTwo = Y2.est - ( cbind(rep(1, length(t2)), t2) %*% beta2.est )
+    RThree = c(Y1.est, Y2.est) - ( cbind(rep(1, length(t3)), t3) %*% beta3.est )
+    
+    resid1.est = ROne[-1] - PHI1.est * ROne[-length(ROne)]
+    resid2.est = RTwo[-1] - PHI2.est * RTwo[-length(RTwo)]
+    resid3.est = RThree[-1] - PHI3.est * RThree[-length(RThree)]
+    
+    RSSF = sum(resid1.est^2) + sum(resid2.est^2)
+    RSSR = sum(resid3.est^2)
     
     FstatRF = ((RSSR - RSSF)/2)/(RSSF/(T-2))
     pvalueRF = 2*pf(FstatRF, 2, T-2, lower.tail=FALSE)
     
-    diffAR = modAR1$coefficients - modAR2$coefficients
+    diffAR = PHI2.est - PHI1.est 
       
    
     tableResult = matrix(0,4,2)
     tableResult[,1] = c("Pre:", "Post:", "Diff = Post - Pre: ", "p-value: ")
-    tableResult[,2] = c(round(modAR1$coefficients, 2), round(modAR2$coefficients, 2), round(diffAR,2) , as.character(round(pvalueRF,2)))
+    tableResult[,2] = c(round(PHI1.est, 2), round(PHI2.est, 2), round(diffAR,2) , as.character(round(pvalueRF,2)))
     tableResult= as.data.frame(tableResult)
     colnames(tableResult)=c("","Value")
     return(tableResult)
@@ -359,13 +371,13 @@ shinyServer(function(input, output,session) {
     rslt2=LogLikelihood()$rslt2
     t.est = LogLikelihood()$t.est
     
-    level = rslt2$fitted[1] - rslt1$fitted[t.est-1] #level = level.post-level.pre
+    level = rslt1$fitted[1] - rslt2$fitted[t.est-1] #level = level.pre-level.post
     #estimated covariance matrix for beta01, beta11, beta02, beta12
     cov = matrix(0,4,4)
     cov[1:2,1:2] = rslt1$varB
     cov[3:4,3:4] = rslt2$varB
     #level.var is variance of level
-    level.var = t(c(1,t.est-1,1,1))%*%cov%*%c(1,t.est-1,1,1)
+    level.var = t(c(1,t.est,-1,-t.est))%*%cov%*%c(1,t.est,-1,-t.est)
     #compute 95% CI for level
     level.low = level - 1.96*sqrt(level.var)
     level.high = level + 1.96*sqrt(level.var)
