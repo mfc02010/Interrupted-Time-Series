@@ -276,16 +276,17 @@ shinyServer(function(input, output,session) {
   
   ###Change in AR coefficients
   ChangeAR <- eventReactive(input$showChangeAR, {
-    Y=simulationData()$Y; T=simulationData()$T;
+    T=simulationData()$T;
     Y1.est=LogLikelihood()$Y1.est
     Y2.est=LogLikelihood()$Y2.est
     t1 = LogLikelihood()$t1
     t2 = LogLikelihood()$t2
     rslt1=LogLikelihood()$rslt1
     rslt2=LogLikelihood()$rslt2
+    Y3.est = c(Y1.est, Y2.est)
     
     t3 = c(t1, t2)
-    rslt3 = gls( c(Y1.est, Y2.est) ~ t3, correlation = corAR1(form=~1))
+    rslt3 = gls( Y3.est ~ t3, correlation = corAR1(form=~1))
     
     beta1.est = rslt1$coef
     beta2.est = rslt2$coef
@@ -300,7 +301,7 @@ shinyServer(function(input, output,session) {
     
     ROne = Y1.est - ( cbind(rep(1, length(t1)), t1) %*% beta1.est )
     RTwo = Y2.est - ( cbind(rep(1, length(t2)), t2) %*% beta2.est )
-    RThree = c(Y1.est, Y2.est) - ( cbind(rep(1, length(t3)), t3) %*% beta3.est )
+    RThree = Y3.est - ( cbind(rep(1, length(t3)), t3) %*% beta3.est )
     
     resid1.est = ROne[-1] - PHI1.est * ROne[-length(ROne)]
     resid2.est = RTwo[-1] - PHI2.est * RTwo[-length(RTwo)]
@@ -371,7 +372,8 @@ shinyServer(function(input, output,session) {
     rslt2=LogLikelihood()$rslt2
     t.est = LogLikelihood()$t.est
     
-    level = rslt1$fitted[1] - rslt2$fitted[t.est-1] #level = level.pre-level.post
+    level.pre = cbind(1, t.est) %*%rslt1$coefficients
+    level = level.pre - rslt2$fitted[1] #level = level.pre-level.post
     #estimated covariance matrix for beta01, beta11, beta02, beta12
     cov = matrix(0,4,4)
     cov[1:2,1:2] = rslt1$varB
@@ -383,8 +385,8 @@ shinyServer(function(input, output,session) {
     level.high = level + 1.96*sqrt(level.var)
     
     tableResult = matrix(0,4,2)
-    tableResult[,1] = c("Post: ","Pre: ","Level Diff = Post - Pre: ","95% CI for Level Diff: ")
-    tableResult[,2] = c(round(rslt2$fitted[1],2) , round(rslt1$fitted[t.est-1],2) , round(level,2) , paste("( ", as.character(round(level.low,2))," , ", as.character(round(level.high,2)), " )"))
+    tableResult[,1] = c("Pre: ","Post: ","Level Diff = Post - Pre: ","95% CI for Level Diff: ")
+    tableResult[,2] = c(round(level.pre,2) , round(rslt2$fitted[1],2) , round(level,2) , paste("( ", as.character(round(level.low,2))," , ", as.character(round(level.high,2)), " )"))
     tableResult=as.data.frame(tableResult)
     colnames(tableResult)=c("","Value")
     return(tableResult)
