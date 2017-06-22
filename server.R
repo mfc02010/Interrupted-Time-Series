@@ -256,15 +256,35 @@ shinyServer(function(input, output,session) {
     
     beta11.est = rslt1$coef[2]
     beta12.est = rslt2$coef[2]
-    var.est = rslt1$varB[2,2]+rslt2$varB[2,2]
-    slope.stat = abs(beta11.est-beta12.est)/sqrt(var.est)
-    pvalue1 = 2*(1-pnorm(slope.stat))
-    ci.low = beta12.est - beta11.est - 1.96*sqrt(var.est)
-    ci.up = beta12.est - beta11.est + 1.96*sqrt(var.est)
     
+    lcont_CI_2mod <- function( model1, model2, cont){
+      ## gives estimate, 95% CI, tvalue, and p-value for any linear contrast on the 
+      ## concatenated parameters of two models. 
+      coef <- cont %*% c(model1$coef, model2$coef)
+      VAR <- diag(length(cont));  b <- length(model1$coef)
+      VAR[1:b, 1:b] <- vcov( model1 )
+      VAR[(b+1):(length(cont)), (b+1):(length(cont))] <- vcov( model2 )
+      
+      se <- sqrt(cont %*% VAR %*% cont)
+      tvalue <- (coef) / se
+      df <- length(c(model1$fitted, model2$fitted)) - length(coef)
+      pvalue <- 2*(1-pt(abs(tvalue), df))
+      
+      ci95.lo <- coef - qt(.975, df) * se
+      ci95.hi <- coef+ qt(.975, df) * se
+      est <- coef
+      
+      rslt <- round( cbind( est, ci95.lo, ci95.hi, tvalue, pvalue ), 4 )
+      colnames( rslt ) <- c("Estimate", "ci95.left", "ci95.right", "t value", "Pr(>|t|)")			
+      
+      rslt
+    }
+    
+    resS = lcont_CI_2mod(rslt1, rslt2, c(-1, 0, 1, 0))
+
     tableResult = matrix(0,5,2)
     tableResult[,1] = c("Pre: ","Post: ","Diff = Post - Pre: ","95% CI for Diff: ","p-value: ")
-    tableResult[,2] = c(round(beta11.est,2), round(beta12.est,2), round(beta12.est,2)-round(beta11.est,2) , paste("( ", as.character(round(ci.low,2))," , ", as.character(round(ci.up,2)), " )"), round(pvalue1,2))
+    tableResult[,2] = c(round(beta11.est,2), round(beta12.est,2), round(resS[1],2) , paste("( ", as.character(round(resS[2],2))," , ", as.character(round(resS[3],2)), " )"), round(resS[5],2))
     tableResult=as.data.frame(tableResult)
     colnames(tableResult)=c("","Value")
     return(tableResult)
@@ -372,21 +392,38 @@ shinyServer(function(input, output,session) {
     rslt2=LogLikelihood()$rslt2
     t.est = LogLikelihood()$t.est
     
+    
+    lcont_CI_2mod <- function( model1, model2, cont){
+      ## gives estimate, 95% CI, tvalue, and p-value for any linear contrast on the 
+      ## concatenated parameters of two models. 
+      coef <- cont %*% c(model1$coef, model2$coef)
+      VAR <- diag(length(cont));  b <- length(model1$coef)
+      VAR[1:b, 1:b] <- vcov( model1 )
+      VAR[(b+1):(length(cont)), (b+1):(length(cont))] <- vcov( model2 )
+      
+      se <- sqrt(cont %*% VAR %*% cont)
+      tvalue <- (coef) / se
+      df <- length(c(model1$fitted, model2$fitted)) - length(coef)
+      pvalue <- 2*(1-pt(abs(tvalue), df))
+      
+      ci95.lo <- coef - qt(.975, df) * se
+      ci95.hi <- coef+ qt(.975, df) * se
+      est <- coef
+      
+      rslt <- round( cbind( est, ci95.lo, ci95.hi, tvalue, pvalue ), 4 )
+      colnames( rslt ) <- c("Estimate", "ci95.left", "ci95.right", "t value", "Pr(>|t|)")			
+      
+      rslt
+    }
+    
+    resCIL = lcont_CI_2mod(rslt1, rslt2, c(1,t.est,-1,-t.est))
+    
     level.pre = cbind(1, t.est) %*%rslt1$coefficients
-    level = level.pre - rslt2$fitted[1] #level = level.pre-level.post
-    #estimated covariance matrix for beta01, beta11, beta02, beta12
-    cov = matrix(0,4,4)
-    cov[1:2,1:2] = rslt1$varB
-    cov[3:4,3:4] = rslt2$varB
-    #level.var is variance of level
-    level.var = t(c(1,t.est,-1,-t.est))%*%cov%*%c(1,t.est,-1,-t.est)
-    #compute 95% CI for level
-    level.low = level - 1.96*sqrt(level.var)
-    level.high = level + 1.96*sqrt(level.var)
+    
     
     tableResult = matrix(0,4,2)
-    tableResult[,1] = c("Pre: ","Post: ","Level Diff = Post - Pre: ","95% CI for Level Diff: ")
-    tableResult[,2] = c(round(level.pre,2) , round(rslt2$fitted[1],2) , round(level,2) , paste("( ", as.character(round(level.low,2))," , ", as.character(round(level.high,2)), " )"))
+    tableResult[,1] = c("Pre: ","Post: ","Level Diff = Post - Pre: ","95% CI for Level Diff: ", "p-value:")
+    tableResult[,2] = c(round(level.pre,2) , round(rslt2$fitted[1],2) , round(resCIL[1],2) , paste("( ", as.character(round(resCIL[2],2))," , ", as.character(round(resCIL[3],2)), " )"), round(resCIL[5],2))
     tableResult=as.data.frame(tableResult)
     colnames(tableResult)=c("","Value")
     return(tableResult)
