@@ -105,13 +105,14 @@ shinyUI(fluidPage(
     
     column(6, h4("Change in Slope"), actionButton("showChangeSlope", "Show"), wellPanel( tableOutput('tableChangeSlope'))),
     
-    column(6, h4("Change in Noise Variance"), actionButton("showChangeWN", "Show"),wellPanel( tableOutput('tableChangeWN')))
+    column(6, h4("Change in Level"), actionButton("showChangeLevel", "Show"),wellPanel( tableOutput('tableChangeLevel')))
+    
   ),
   
   fluidRow(
-    column(6, h4("Change in Level"), actionButton("showChangeLevel", "Show"),wellPanel( tableOutput('tableChangeLevel'))),
+    column(6, h4("Change in AR Coefficient"), actionButton("showChangeAR", "Show"),wellPanel(tableOutput('tableChangeAR'))),
     
-    column(6, h4("Change in AR Coefficient"), actionButton("showChangeAR", "Show"),wellPanel(tableOutput('tableChangeAR')))
+    column(6, h4("Change in Noise Variance"), actionButton("showChangeWN", "Show"),wellPanel( tableOutput('tableChangeWN')))
   ),
   
   hr(),

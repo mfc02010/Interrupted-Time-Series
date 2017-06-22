@@ -301,10 +301,11 @@ shinyServer(function(input, output,session) {
     pvalueRF = 2*pf(FstatRF, 2, T-2, lower.tail=FALSE)
     
     diffAR = modAR1$coefficients - modAR2$coefficients
+      
    
     tableResult = matrix(0,2,2)
-    tableResult[,1] = c("Difference = Post - Pre: ", "p-value: ")
-    tableResult[,2] = c(round(diffAR,2) , as.character(round(pvalueRF,2)))
+    tableResult[,1] = c("Pre:", "Post:", "Diff = Post - Pre: ", "p-value: ")
+    tableResult[,2] = c(round(modAR1$coefficients, 2), round(modAR2$coefficients, 2), round(diffAR,2) , as.character(round(pvalueRF,2)))
     tableResult= as.data.frame(tableResult)
     colnames(tableResult)=c("","Value")
     return(tableResult)
