@@ -303,7 +303,7 @@ shinyServer(function(input, output,session) {
     diffAR = modAR1$coefficients - modAR2$coefficients
       
    
-    tableResult = matrix(0,2,2)
+    tableResult = matrix(0,4,2)
     tableResult[,1] = c("Pre:", "Post:", "Diff = Post - Pre: ", "p-value: ")
     tableResult[,2] = c(round(modAR1$coefficients, 2), round(modAR2$coefficients, 2), round(diffAR,2) , as.character(round(pvalueRF,2)))
     tableResult= as.data.frame(tableResult)
