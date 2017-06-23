@@ -280,7 +280,7 @@ shinyServer(function(input, output,session) {
       rslt
     }
     
-    resS = lcont_CI_2mod(rslt1, rslt2, c(-1, 0, 1, 0))
+    resS = lcont_CI_2mod(rslt1, rslt2, c(0, -1, 0, 1))
 
     tableResult = matrix(0,5,2)
     tableResult[,1] = c("Pre: ","Post: ","Diff = Post - Pre: ","95% CI for Diff: ","p-value: ")
@@ -392,7 +392,6 @@ shinyServer(function(input, output,session) {
     rslt2=LogLikelihood()$rslt2
     t.est = LogLikelihood()$t.est
     
-    
     lcont_CI_2mod <- function( model1, model2, cont){
       ## gives estimate, 95% CI, tvalue, and p-value for any linear contrast on the 
       ## concatenated parameters of two models. 
@@ -421,7 +420,7 @@ shinyServer(function(input, output,session) {
     level.pre = cbind(1, t.est) %*%rslt1$coefficients
     
     
-    tableResult = matrix(0,4,2)
+    tableResult = matrix(0,5,2)
     tableResult[,1] = c("Pre: ","Post: ","Level Diff = Post - Pre: ","95% CI for Level Diff: ", "p-value:")
     tableResult[,2] = c(round(level.pre,2) , round(rslt2$fitted[1],2) , round(resCIL[1],2) , paste("( ", as.character(round(resCIL[2],2))," , ", as.character(round(resCIL[3],2)), " )"), round(resCIL[5],2))
     tableResult=as.data.frame(tableResult)
