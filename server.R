@@ -1,7 +1,30 @@
 library(shiny)
 library(nlme)
 
-#source("C:\\Users\\Sony\\Dropbox\\UCI\\RESEARCH\\PartialCoherence FB\\RCode\\functions.R")
+#Preliminary function
+
+lcont_CI_2mod <- function( model1, model2, cont){
+  ## gives estimate, 95% CI, tvalue, and p-value for any linear contrast on the 
+  ## concatenated parameters of two models. 
+  coef <- cont %*% c(model1$coef, model2$coef)
+  VAR <- diag(length(cont));  b <- length(model1$coef)
+  VAR[1:b, 1:b] <- vcov( model1 )
+  VAR[(b+1):(length(cont)), (b+1):(length(cont))] <- vcov( model2 )
+  
+  se <- sqrt(cont %*% VAR %*% cont)
+  tvalue <- (coef) / se
+  df <- length(c(model1$fitted, model2$fitted)) - length(coef)
+  pvalue <- 2*(1-pt(abs(tvalue), df))
+  
+  ci95.lo <- coef - qt(.975, df) * se
+  ci95.hi <- coef+ qt(.975, df) * se
+  est <- coef
+  
+  rslt <- round( cbind( est, ci95.lo, ci95.hi, tvalue, pvalue ), 4 )
+  colnames( rslt ) <- c("Estimate", "ci95.left", "ci95.right", "t value", "Pr(>|t|)")			
+  
+  rslt
+}
 
 # Define server logic required to summarize and view the selected
 # dataset
@@ -257,29 +280,6 @@ shinyServer(function(input, output,session) {
     beta11.est = rslt1$coef[2]
     beta12.est = rslt2$coef[2]
     
-    lcont_CI_2mod <- function( model1, model2, cont){
-      ## gives estimate, 95% CI, tvalue, and p-value for any linear contrast on the 
-      ## concatenated parameters of two models. 
-      coef <- cont %*% c(model1$coef, model2$coef)
-      VAR <- diag(length(cont));  b <- length(model1$coef)
-      VAR[1:b, 1:b] <- vcov( model1 )
-      VAR[(b+1):(length(cont)), (b+1):(length(cont))] <- vcov( model2 )
-      
-      se <- sqrt(cont %*% VAR %*% cont)
-      tvalue <- (coef) / se
-      df <- length(c(model1$fitted, model2$fitted)) - length(coef)
-      pvalue <- 2*(1-pt(abs(tvalue), df))
-      
-      ci95.lo <- coef - qt(.975, df) * se
-      ci95.hi <- coef+ qt(.975, df) * se
-      est <- coef
-      
-      rslt <- round( cbind( est, ci95.lo, ci95.hi, tvalue, pvalue ), 4 )
-      colnames( rslt ) <- c("Estimate", "ci95.left", "ci95.right", "t value", "Pr(>|t|)")			
-      
-      rslt
-    }
-    
     resS = lcont_CI_2mod(rslt1, rslt2, c(0, -1, 0, 1))
 
     tableResult = matrix(0,5,2)
@@ -331,7 +331,7 @@ shinyServer(function(input, output,session) {
     RSSR = sum(resid3.est^2)
     
     FstatRF = ((RSSR - RSSF)/2)/(RSSF/(T-2))
-    pvalueRF = 2*pf(FstatRF, 2, T-2, lower.tail=FALSE)
+    pvalueRF = pf(FstatRF, 2, T-2, lower.tail=FALSE)
     
     diffAR = PHI2.est - PHI1.est 
       
@@ -365,19 +365,15 @@ shinyServer(function(input, output,session) {
     df2 = T-t.est-1
     var.stat = sse1/sse2
     if(var.stat>1) {
-      pvalue2 = 2*pf(var.stat,df1,df2, lower.tail=FALSE)
-      var.low = var.stat/qf(0.975,df1,df2)
-      var.up = var.stat/qf(0.025,df1,df2)
+      pvalue2 = pf(var.stat,df1,df2, lower.tail=FALSE)
     }
     if(var.stat<1) {
-      pvalue2 = 2*pf(1/var.stat,df1,df2, lower.tail=FALSE)
-      var.low = 1/((1/var.stat)/qf(0.975,df1,df2))
-      var.up = 1/((1/var.stat)/qf(0.025,df1,df2))
+      pvalue2 = pf(1/var.stat,df1,df2, lower.tail=FALSE)
     }
     
-    tableResult = matrix(0,5,2)
-    tableResult[,1] = c("Pre: ","Post: ","Ratio = Post / Pre: ","95% CI for Ratio: ","p-value: ")
-    tableResult[,2] = c(round(sse1,2), round(sse2,2), round(var.stat,2) , paste("( ", as.character(round(var.low,2))," , ", as.character(round(var.up,2)), " )"), as.character(round(pvalue2,2)))
+    tableResult = matrix(0,4,2)
+    tableResult[,1] = c("Pre: ","Post: ","Ratio = Post / Pre: ","p-value: ")
+    tableResult[,2] = c(round(sse1,2), round(sse2,2), round(var.stat,2), as.character(round(pvalue2,2)))
     tableResult=as.data.frame(tableResult)
     colnames(tableResult)=c("","Value")
     return(tableResult)
@@ -392,28 +388,6 @@ shinyServer(function(input, output,session) {
     rslt2=LogLikelihood()$rslt2
     t.est = LogLikelihood()$t.est
     
-    lcont_CI_2mod <- function( model1, model2, cont){
-      ## gives estimate, 95% CI, tvalue, and p-value for any linear contrast on the 
-      ## concatenated parameters of two models. 
-      coef <- cont %*% c(model1$coef, model2$coef)
-      VAR <- diag(length(cont));  b <- length(model1$coef)
-      VAR[1:b, 1:b] <- vcov( model1 )
-      VAR[(b+1):(length(cont)), (b+1):(length(cont))] <- vcov( model2 )
-      
-      se <- sqrt(cont %*% VAR %*% cont)
-      tvalue <- (coef) / se
-      df <- length(c(model1$fitted, model2$fitted)) - length(coef)
-      pvalue <- 2*(1-pt(abs(tvalue), df))
-      
-      ci95.lo <- coef - qt(.975, df) * se
-      ci95.hi <- coef+ qt(.975, df) * se
-      est <- coef
-      
-      rslt <- round( cbind( est, ci95.lo, ci95.hi, tvalue, pvalue ), 4 )
-      colnames( rslt ) <- c("Estimate", "ci95.left", "ci95.right", "t value", "Pr(>|t|)")			
-      
-      rslt
-    }
     
     resCIL = lcont_CI_2mod(rslt1, rslt2, c(1,t.est,-1,-t.est))
     
@@ -421,7 +395,7 @@ shinyServer(function(input, output,session) {
     
     
     tableResult = matrix(0,5,2)
-    tableResult[,1] = c("Pre: ","Post: ","Level Diff = Post - Pre: ","95% CI for Level Diff: ", "p-value:")
+    tableResult[,1] = c("Pre: ","Post: ","Level Diff = Pre - Post: ","95% CI for Level Diff: ", "p-value:")
     tableResult[,2] = c(round(level.pre,2) , round(rslt2$fitted[1],2) , round(resCIL[1],2) , paste("( ", as.character(round(resCIL[2],2))," , ", as.character(round(resCIL[3],2)), " )"), round(resCIL[5],2))
     tableResult=as.data.frame(tableResult)
     colnames(tableResult)=c("","Value")
