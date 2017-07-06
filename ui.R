@@ -4,7 +4,7 @@ library(shiny)
 shinyUI(fluidPage(
   
   # Application title
-  titlePanel("Modeling and Inference for Interrupted Time Series Data"),
+  titlePanel("Robust-ITS Modeling and Inference for Interrupted Time Series Data"),
   hr(),
   h4("1. Data Description"),
   
