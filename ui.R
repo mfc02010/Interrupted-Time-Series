@@ -50,7 +50,7 @@ shinyUI(fluidPage(
   fluidRow(
     column(4, numericInput("t0", "Theoretical executive time point (TET):", 31)),
     column(4, numericInput("L1", "Choose candidate before TET:", 5)),
-    column(4, numericInput("L2", "Choose candidate after TET:", 5))
+    column(4, numericInput("L2", "Choose candidate after TET:", 3))
   ),
   fluidRow(
     column(5,h4("")),
