@@ -366,8 +366,7 @@ shinyServer(function(input, output,session) {
     var.stat = sse1/sse2
     if(var.stat>1) {
       pvalue2 = pf(var.stat,df1,df2, lower.tail=FALSE)
-    }
-    if(var.stat<1) {
+    } else {
       pvalue2 = pf(1/var.stat,df1,df2, lower.tail=FALSE)
     }
     
