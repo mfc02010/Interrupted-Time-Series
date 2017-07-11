@@ -9,11 +9,25 @@ shinyUI(fluidPage(
   h4("1. Data Description"),
   
   fluidRow(
-    column(4, wellPanel(
+    column(10, wellPanel(
       
       fileInput('file1', 'Choose CSV File',
                 accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-      tags$hr(),
+      tags$em("**Data must be in a *.csv file, contain only three columns (date, micro system, and outcome of interest), 
+              be collected monthly, and inlcude at most 12 micro systems (units, clusters, organizations, etc.). 
+              Each outcome must be entered in a 
+              separate *.csv file containing information for at most 12 units, and individually analyzed; i.e., upload one 
+              outcome *.csv file, run the analysis, save results, and then upload the next outcome *.csv file.", style="font-size:13px; color:red"),
+      tags$br(),
+      tags$em("If there are more than
+              12 units of interest and/or more than one outcome, separate the data into files with no more than 12 units and one outcome.
+              An example of the data structure accepted is provided in the manual.", style="font-size:13px; color:red"),
+      tags$br(),
+      tags$em("The manual can be downloaded at:", style="font-size:13px; color:red"),
+      tags$html(
+        tags$body(
+          a("Robust-ITS Manual", target="blank", href= "https://www.dropbox.com/s/te5gy1cojtovevo/Manual3.pdf?dl=1", style="font-size:13px"))
+      ),
       checkboxInput('header', 'Header', TRUE),
       radioButtons('sep', 'Separator',
                    c(Comma=',',
@@ -26,25 +40,19 @@ shinyUI(fluidPage(
                      'Single Quote'="'"),
                    '"')
       
-    )),
-    
-    column(8, wellPanel(
-      plotOutput("plot")
     ))
-    
   ),
-  
-  
+
   
   fluidRow(
     column(4, sliderInput("Hospital_num",  "Micro System Number:", min = 1, max = 12, value = 3)),
     column(4, textInput("nameHospital",  "Micro System Name:", value = "Choose Micro System")),
     column(4, h4("  "), actionButton("simulation", "Confirm your micro system choice",style='float:center; padding:15px; font-size:120%'))
   ),
-  
+ 
   fluidRow(
-    column(6, numericInput("month", "Choose starting month:", 1)),
-    column(6, numericInput("year", "Choose starting year:", 2008))
+    column(4, numericInput("month", "Choose starting month:", 1)),
+    column(4, numericInput("year", "Choose starting year:", 2008))
     
   ),
   fluidRow(
@@ -53,23 +61,30 @@ shinyUI(fluidPage(
     column(4, numericInput("L2", "Choose candidate after TET:", 3))
   ),
   fluidRow(
-    column(5,h4("")),
-    column(6, actionButton("plotData", " Plot Data ",style='float:center; padding:15px; font-size:120%'))
+    column(4,h4("")),
+    column(4, actionButton("plotData", " Plot Data ",style='float:center; padding:15px; font-size:120%'))
+  ),
+  h4(" "),
+   fluidRow(
+    column(1,h4("")),
+    column(10, align="center", wellPanel(
+      tags$br(),
+      plotOutput("plot")
+    ))
   ),
   
+  br(),
   hr(),
   
   h4("2. Statistical Model for Interrupted Time Series Data"),
-  
-  
-  
+
   fluidRow(
     column(5,h4("")),
     column(6, actionButton("analyze", "Analyze Data", style='color:red; padding:20px; font-size:120%'))
     #column(6, downloadButton("exportResults", "Export Regression Results"))
   ),
   
-  hr(),
+  br(),
   
   fluidRow(
     column(6, wellPanel(plotOutput("plotLogLikelihood"))),
