@@ -371,8 +371,8 @@ shinyServer(function(input, output,session) {
     }
     
     tableResult = matrix(0,4,2)
-    tableResult[,1] = c("Pre: ","Post: ","Ratio = Post / Pre: ","p-value: ")
-    tableResult[,2] = c(round(sse1,2), round(sse2,2), round(var.stat,2), as.character(round(pvalue2,2)))
+    tableResult[,1] = c("Pre: ","Post: ","Ratio = Pre / Post: ","p-value: ")
+    tableResult[,2] = c(round(sse1^2,2), round(sse2^2,2), round(var.stat,2), as.character(round(pvalue2,2)))
     tableResult=as.data.frame(tableResult)
     colnames(tableResult)=c("","Value")
     return(tableResult)
