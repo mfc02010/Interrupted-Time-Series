@@ -363,7 +363,7 @@ shinyServer(function(input, output,session) {
 
     df1 = t.est-3
     df2 = T-t.est-1
-    var.stat = sse1/sse2
+    var.stat = sse1^2/sse2^2
     if(var.stat>1) {
       pvalue2 = pf(var.stat,df1,df2, lower.tail=FALSE)
     } else {
