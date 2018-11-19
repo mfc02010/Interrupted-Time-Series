@@ -13,21 +13,19 @@ shinyUI(fluidPage(
       
       fileInput('file1', 'Choose CSV File',
                 accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-      tags$em("**Data must be in a *.csv file, contain only three columns (date, micro system, and outcome of interest), 
-              be collected monthly, and inlcude at most 12 micro systems (units, clusters, organizations, etc.). 
-              Each outcome must be entered in a 
-              separate *.csv file containing information for at most 12 units, and individually analyzed; i.e., upload one 
-              outcome *.csv file, run the analysis, save results, and then upload the next outcome *.csv file.", style="font-size:13px; color:red"),
+      tags$em("Uploaded data must be in a *.csv file, contain only three columns (date, micro system, and one outcome of interest), 
+              be collected monthly, and include at most 12 micro systems (units, clusters, organizations, etc.).", style="font-size:13px; color:blue"),
       tags$br(),
-      tags$em("If there are more than
-              12 units of interest and/or more than one outcome, separate the data into files with no more than 12 units and one outcome.
-              An example of the data structure accepted is provided in the manual.", style="font-size:13px; color:red"),
+      tags$em("For more than 12 units or more than one outcome, separate the data into files with no more than 12 units and one outcome.
+              An example of the data structure accepted is provided in the manual.", style="font-size:13px; color:blue"),
       tags$br(),
-      tags$em("The manual can be downloaded at:", style="font-size:13px; color:red"),
+      tags$em("The manual can be downloaded at:", style="font-size:13px; color:blue"),
+      tags$body(
+        a("Robust-ITS Manual", target="blank", href= "https://www.dropbox.com/s/te5gy1cojtovevo/Manual3.pdf?dl=1", style="font-size:13px")),
+      tags$br(),
+      tags$em("DISCLAIMER: The authors and their organizations assume no liability for the use of and results obtained from this toolbox. Upload data at your own risk; we do not guarantee the safety of uploaded data. To safeguard data, contact the authors to obtain files to run the toolbox on your local machine.", style="font-size:12px; color:red"),
       tags$html(
-        tags$body(
-          a("Robust-ITS Manual", target="blank", href= "https://www.dropbox.com/s/te5gy1cojtovevo/Manual3.pdf?dl=1", style="font-size:13px"))
-      ),
+         ),
       checkboxInput('header', 'Header', TRUE),
       radioButtons('sep', 'Separator',
                    c(Comma=',',
